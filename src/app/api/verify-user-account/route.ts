@@ -11,21 +11,22 @@ export async function GET(req: NextRequest) {
 
     await dbConnect();
 
-    const result = await UserAccount.find(query.find);
-    console.log(result, "-------------result RuneUtxo");
+    const result = await UserAccount.find(query.find)
+    .select("ordinal_address vault -_id");
+    // console.log(result, "-------------result user vault get");
 
     if (result.length > 0) {
-      console.log(result, "User account already exists");
+      // console.log(result, "User account already exists");
       return NextResponse.json({
         result,
-        success: true,
+        user_exist: true,
         message: "User already exists",
         count: result.length,
       });
     } else {
       return NextResponse.json({
         result,
-        success: false,
+        user_exist: false,
         message: "User does not exist",
         count: result.length,
       });

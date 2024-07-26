@@ -1,25 +1,25 @@
-
-import { IBalanceData ,IWalletDetails} from "@/types";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { IVaultDetails } from "@/types";
 
 const initialState: {
   btc_price_in_dollar: number;
-  user: IWalletDetails|null;
+  userAccount: any | null;
   new_activity: boolean;
-  balanceData: IBalanceData | null;
 } = {
   btc_price_in_dollar: 0,
-  user: null,
+  userAccount: null,
   new_activity: false,
-  balanceData: null,
 };
 
 const generalSlice = createSlice({
   name: "general",
   initialState,
   reducers: {
-    setUser: (state, action: PayloadAction<IWalletDetails | null>) => {
-      state.user = action.payload;
+    setVaultAndOrdinalAddress: (
+      state,
+      action: PayloadAction<any>
+    ) => {
+      state.userAccount = action.payload;
     },
     setBTCPrice: (state, action: PayloadAction<number>) => {
       state.btc_price_in_dollar = action.payload;
@@ -30,6 +30,6 @@ const generalSlice = createSlice({
   },
 });
 
-export const { setBTCPrice, setUser, setNewActivity, } =
+export const { setBTCPrice, setVaultAndOrdinalAddress, setNewActivity } =
   generalSlice.actions;
 export default generalSlice.reducer;

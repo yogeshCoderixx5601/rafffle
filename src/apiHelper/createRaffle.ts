@@ -2,24 +2,24 @@
 import { IWalletDetails } from "@/types";
 import axios from "axios";
 
-interface IVaultDetails {
-  ordinal_address: string;
-  vault: string;
-}
+// interface IVaultDetails {
+//   ordinal_address: string;
+//   vault: string;
+// }
 
-interface ICreateUserResponse {
-  success: boolean;
-  message: string;
-  result: IVaultDetails[];
-}
+// interface ICreateUserResponse {
+//   success: boolean;
+//   message: string;
+//   result: IVaultDetails[];
+// }
 
-export async function createUserAccount(
-  walletDetails: IWalletDetails
-): Promise<{ data?: ICreateUserResponse; error: string | null } | undefined> {
+export async function createRaffle(
+  raffleDetails: any
+): Promise<{ data?: any; error: string | null } | undefined> {
   try {
-    let url = `${process.env.NEXT_PUBLIC_URL}/api/create-user-account`;
+    let url = `${process.env.NEXT_PUBLIC_URL}/api/create-raffle`;
     const response = await axios.post(url, 
-      walletDetails,
+      raffleDetails,
     );
 
     if (response.status === 200) {

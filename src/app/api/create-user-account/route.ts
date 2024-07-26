@@ -8,43 +8,69 @@ import dbConnect from "@/lib/dbconnect";
 
 // Handle POST request
 export async function POST(req: NextRequest) {
-  console.log("**********CREATE USER ACCOUNT CALLED*********")
+  console.log("**********CREATE USER ACCOUNT CALLED*********");
   try {
-      const walletDetails = await req.json();
-      console.log({walletDetails})
-    const { ordinal_address, ordinal_pubkey, cardinal_address, cardinal_pubkey, wallet } = walletDetails;
-    console.log('RECEIVED ORDINAL_ADDRESS', ordinal_address);
-
-    const { userAddress, seckey, leaf, tapkey, privkey } = await generateUserWallet(ordinal_address, "testnet");
-
-   await dbConnect()
-    const newUserAccount = new UserAccount({
+    const walletDetails = await req.json();
+    console.log({ walletDetails });
+    const {
       ordinal_address,
       ordinal_pubkey,
-      userAddress,
+      cardinal_address,
+      cardinal_pubkey,
+      wallet,
+    } = walletDetails;
+    // console.log("RECEIVED ORDINAL_ADDRESS", ordinal_address);
+
+    await dbConnect();
+
+    // Check if user account already exists
+    const existingUser = await UserAccount.findOne({ ordinal_address });
+    if (existingUser) {
+      // console.log("User account already exists:", existingUser);
+      return NextResponse.json({
+        success: false,
+        message: "User account already exists",
+        result: {
+          vault: existingUser.vault,
+          ordinal_address,
+        },
+      });
+    }
+
+    const { vault, seckey, leaf, tapkey, privkey } = await generateUserWallet(
+      ordinal_address,
+      "testnet"
+    );
+
+    const newUserAccount = new UserAccount({
+      ordinal_address,
+      vault,
       privkey,
       leaf,
       tapkey,
     });
 
     const savedUserAccount = await newUserAccount.save();
-    console.log('User account saved successfully:', savedUserAccount);
+    console.log("User account saved successfully:", savedUserAccount);
 
     return NextResponse.json({
       success: true,
-      address: userAddress,
-      leaf,
-      tapkey,
+      result: { vault: savedUserAccount.vault, ordinal_address },
     });
   } catch (error) {
     console.error("Error generating wallet:", error);
-    return NextResponse.json({ success: false, message: "Failed to generate wallet" });
+    return NextResponse.json({
+      success: false,
+      message: "Failed to generate wallet",
+    });
   }
 }
 
 // Convert bytes to hex string
 function bytesToHex(bytes: Uint8Array): string {
-  return Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join(
+    ""
+  );
 }
 
 // Generate a valid private key
@@ -58,12 +84,15 @@ async function generatePrivateKey(): Promise<string> {
     const pubkey = seckey.pub.rawX;
     const initScript = [pubkey, "OP_CHECKSIG"];
     const initLeaf = await Tap.tree.getLeaf(Script.encode(initScript));
-    const [initTapkey, initCblock] = await Tap.getPubKey(pubkey, { target: initLeaf });
+    const [initTapkey, initCblock] = await Tap.getPubKey(pubkey, {
+      target: initLeaf,
+    });
 
     const testRedeemTx = Tx.create({
       vin: [
         {
-          txid: "a99d1112bcb35845fd44e703ef2c611f0360dd2bb28927625dbc13eab58cd968",
+          txid:
+            "a99d1112bcb35845fd44e703ef2c611f0360dd2bb28927625dbc13eab58cd968",
           vout: 0,
           prevout: {
             value: 10000,
@@ -79,7 +108,9 @@ async function generatePrivateKey(): Promise<string> {
       ],
     });
 
-    const testSig = await Signer.taproot.sign(seckey.raw, testRedeemTx, 0, { extension: initLeaf });
+    const testSig = await Signer.taproot.sign(seckey.raw, testRedeemTx, 0, {
+      extension: initLeaf,
+    });
     testRedeemTx.vin[0].witness = [testSig.hex, initScript, initCblock];
     isValid = await Signer.taproot.verify(testRedeemTx, 0, { pubkey });
 
@@ -101,7 +132,13 @@ async function generatePrivateKey(): Promise<string> {
 async function generateUserWallet(
   ordinalAddress: string,
   network: "testnet" | "mainnet"
-): Promise<{ userAddress: string; seckey: cryptoUtils.KeyPair; leaf: any; tapkey: any; privkey: string }> {
+): Promise<{
+  vault: string;
+  seckey: cryptoUtils.KeyPair;
+  leaf: any;
+  tapkey: any;
+  privkey: string;
+}> {
   const ec = new TextEncoder();
   const privkey = await generatePrivateKey();
   const seckey = new cryptoUtils.KeyPair(privkey);
@@ -121,13 +158,13 @@ async function generateUserWallet(
   const leaf = await Tap.tree.getLeaf(Script.encode(script));
   const [tapkey] = await Tap.getPubKey(pubkey, { target: leaf });
 
-  const userAddress = Address.p2tr.encode(tapkey, network);
+  const vault = Address.p2tr.encode(tapkey, network);
 
   // Debug information
   console.debug("seckey:", seckey);
   console.debug("leaf:", leaf);
   console.debug("Tapkey:", tapkey);
-  console.debug("User Address:", userAddress);
+  console.debug("User Address:", vault);
 
-  return { userAddress, seckey, leaf, tapkey, privkey };
+  return { vault, seckey, leaf, tapkey, privkey };
 }

@@ -1,19 +1,27 @@
 "use client";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { CircularProgress } from "@mui/material";
 import { useWalletAddress } from "bitcoin-wallet-adapter";
 import { createUserAccount } from "@/apiHelper/createUserAccount";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addNotification } from "@/stores/reducers/notificationReducer";
 import { verifyingUserAccount } from "@/apiHelper/verifyUserAccount";
+import { setVaultAndOrdinalAddress } from "@/stores/reducers/generalReducer";
+import { RootState } from "@/stores";
+import { IVaultDetails } from "@/types";
+import { shortenString } from "@/utils";
+import { getVaultBalance } from "@/apiHelper/getVaultBalance";
+import { fetchInscriptions } from "@/apiHelper/fetchInscriptionsParams";
 
 const DashboardPage = () => {
   const walletDetails = useWalletAddress();
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userExist, setUserExist] = useState<boolean>();
+  const [inscriptions, setInscriptions] = useState<any[]>([]);
 
-  const handleCreateUserWallet = useCallback(async () => {
+  const vetifyUserWallet = useCallback(async () => {
     if (
       !walletDetails ||
       !walletDetails.ordinal_address ||
@@ -37,11 +45,13 @@ const DashboardPage = () => {
       const response = await verifyingUserAccount(
         walletDetails.ordinal_address
       );
-      console.log("Verification response:", response);
+      // console.log("Verification response:", response?.data?.result);
+      setUserExist(response?.data?.user_exist);
+      dispatch(setVaultAndOrdinalAddress(response?.data?.result[0]));
 
-      if (response?.data?.success === false) {
-        await createUserWallet();
+      if (response?.data?.user_exist === false) {
       } else {
+        dispatch(setVaultAndOrdinalAddress(response?.data?.result[0]));
         dispatch(
           addNotification({
             id: Date.now(),
@@ -66,27 +76,43 @@ const DashboardPage = () => {
     }
   }, [walletDetails, dispatch]);
 
-  const createUserWallet = async () => {
-    try {
-      const response = await createUserAccount(walletDetails);
-      console.log("Create user wallet response:", response);
+  useEffect(() => {
+    vetifyUserWallet();
+  }, [walletDetails]);
 
-      dispatch(
-        addNotification({
-          id: Date.now(),
-          message: "Account successfully created!",
-          open: true,
-          severity: "success",
-        })
-      );
+  const handleCreateUserWallet = async () => {
+    try {
+      if (walletDetails && walletDetails.ordinal_address) {
+        const response = await createUserAccount(walletDetails);
+        // console.log("Create user wallet response:", response?.data?.result);
+
+        dispatch(setVaultAndOrdinalAddress(response?.data?.result[0]));
+
+        dispatch(
+          addNotification({
+            id: Date.now(),
+            message: "Account successfully created!",
+            open: true,
+            severity: "success",
+          })
+        );
+      }
     } catch (err) {
       console.error("Error creating wallet:", err);
       setError("Failed to create wallet. Please try again.");
     }
   };
 
+  const userVaultDetails = useSelector(
+    (state: RootState) => state.general.userAccount
+  );
+  // console.log(userVaultDetails, "---------USER VAULT DETAILS");
+
+
+  console.log(inscriptions, "insriptions");
+
   return (
-    <div className="w-full h-screen flex flex-col justify-center items-center">
+    <div className="w-full h-screen px-4 flex items-center justify-center">
       {loading && (
         <div className="mb-4">
           <CircularProgress />
@@ -97,13 +123,19 @@ const DashboardPage = () => {
           <p>{error}</p>
         </div>
       )}
-      <button
-        className="p-4 custom-gradient text-white rounded-lg shadow-lg"
-        onClick={handleCreateUserWallet}
-        disabled={loading}
-      >
-        {loading ? <CircularProgress size={20} /> : "Create Account"}
-      </button>
+      {!userExist ? (
+        <button
+          className="p-4 custom-gradient text-white rounded-lg shadow-lg flex flex-col justify-center items-center"
+          onClick={handleCreateUserWallet}
+          disabled={loading}
+        >
+          {loading ? <CircularProgress size={20} /> : "Create Account"}
+        </button>
+      ) : (
+        <div className="absolute top-[20%] right-4 p-4 custom-gradient text-white rounded-lg shadow-lg">
+          {shortenString(userVaultDetails.vault)}
+        </div>
+      )}
     </div>
   );
 };

@@ -18,7 +18,7 @@ import {
 } from "react-icons/fa6";
 import { FiCopy } from "react-icons/fi";
 import { Popover } from "@mui/material";
-import { setBTCPrice, setUser } from "@/stores/reducers/generalReducer";
+import { setBTCPrice } from "@/stores/reducers/generalReducer";
 import { addNotification } from "@/stores/reducers/notificationReducer";
 import copy from "copy-to-clipboard";
 import { MdOutlineDashboard } from "react-icons/md";
@@ -29,17 +29,6 @@ const Header = () => {
   const dispatch = useDispatch();
   const walletDetails = useWalletAddress();
 
-  async function collectWalletDetails() {
-    if (walletDetails && walletDetails.wallet) {
-      dispatch(setUser(walletDetails));
-    } else {
-      dispatch(setUser(null));
-    }
-  }
-  useEffect(() => {
-    collectWalletDetails();
-  }, [walletDetails]);
-
   async function getBTCPrice() {
     const btcPrice = await getBTCPriceInDollars();
     if (btcPrice) dispatch(setBTCPrice(btcPrice));
@@ -47,22 +36,6 @@ const Header = () => {
   useEffect(() => {
     getBTCPrice();
   }, []);
-
-  const addUserDetails = async () => {
-    try {
-      if (walletDetails && walletDetails.wallet && walletDetails.connected) {
-        // const user = await addUser(walletDetails);
-        // console.log(user, "---user");
-      }
-    } catch (error) {
-      console.log(error, "error");
-    }
-  };
-
-  useEffect(() => {
-    addUserDetails();
-  }, [walletDetails]);
-
 
   return (
     <div className="fixed left-0 right-0 top-0 z-[1200] bg-primary w-full">
