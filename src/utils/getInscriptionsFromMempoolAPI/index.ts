@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { doesUtxoContainInscription } from '../Marketplace';
+import { doesUtxoContainInscription } from '../MarketPlace';
 
 export async function getInscriptionFromMempoolAPI(wallet: string) {
   const { data: utxos } = await axios.get(
