@@ -1,36 +1,44 @@
 "use client";
-import { getRaffle } from "@/apiHelper/getRaffle";
+import { getRaffles } from "@/apiHelper/getRaffles";
 import RaffleCard from "@/components/Elements/RaffleCard";
 import { RaffleItem } from "@/types";
-import React, { useEffect, useState } from "react";
-
-
+import { useWalletAddress } from "bitcoin-wallet-adapter";
+import React, { useCallback, useEffect, useState } from "react";
 
 const HomePage = () => {
+  const walletDetails = useWalletAddress();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [raffle, setRaffle] = useState<RaffleItem[]>([]);
 
-  const fetchingRaffle = async () => {
+  const fetchingRaffles = useCallback(async () => {
+    console.log("Inside fetchingRaffles HomePage");
     try {
-      const response = await getRaffle();
-      console.log(response?.data, "RAFFLE DATA");
-      if (response?.data.success === true) {
-        setRaffle(response.data.result);
+      if (walletDetails && walletDetails.ordinal_address) {
+        console.log("Wallet details are available:", walletDetails);
+        const response = await getRaffles({ live: true });
+        console.log("Response from getRaffles:", response);
+        
+        if (response?.data?.success === true) {
+          console.log("Raffle data received:", response.data.result);
+          setRaffle(response.data.result);
+        } else {
+          setError("Failed to fetch raffle data");
+        }
       } else {
-        setError("Failed to fetch raffle data");
+        console.log("Wallet details are not available");
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error occurred while fetching raffle data:", error);
       setError("An error occurred while fetching the raffle data");
     } finally {
       setLoading(false);
     }
-  };
+  }, [walletDetails]);
 
   useEffect(() => {
-    fetchingRaffle();
-  }, []);
+    fetchingRaffles();
+  }, [fetchingRaffles]);
 
   if (loading) {
     return (
@@ -45,14 +53,12 @@ const HomePage = () => {
   }
 
   return (
-      <div className="flex items-center flex-wrap pb-10 lg:px-6">
-        {raffle.map((item) => (
-          <RaffleCard item={item} key={item.inscription_id} />
-        ))}
-      </div>
+    <div className="flex items-center flex-wrap pb-10 lg:px-6">
+      {raffle.map((item) => (
+        <RaffleCard item={item} key={item.inscription_id} />
+      ))}
+    </div>
   );
 };
 
 export default HomePage;
-
-

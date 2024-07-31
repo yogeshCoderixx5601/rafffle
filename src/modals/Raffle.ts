@@ -2,6 +2,7 @@ import { Schema } from "mongoose";
 
 export const raffleSchema = new Schema(
   {
+    _id: { type: Schema.Types.ObjectId, required: true, auto: true },
     address: { type: String, required: true },
     inscription_id: { type: String, required: true },
     inscription_number: { type: Number, required: true },

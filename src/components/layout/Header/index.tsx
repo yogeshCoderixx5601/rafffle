@@ -23,6 +23,7 @@ import { addNotification } from "@/stores/reducers/notificationReducer";
 import copy from "copy-to-clipboard";
 import { MdOutlineDashboard } from "react-icons/md";
 import { getBTCPriceInDollars, shortenString } from "@/utils";
+import Logo from "./Logo";
 
 
 const Header = () => {
@@ -67,6 +68,7 @@ const Header = () => {
             />
           </div>
         </div>
+        <Logo/>
       </header>
     </div>
   );

@@ -1,7 +1,7 @@
 "use server";
 import axios from "axios";
 interface BuyDetails {
-  raffle_id:string;
+  raffle:string;
   ordinal_address: string;
   cardinal_address: string;
   ordinal_pubkey: string;

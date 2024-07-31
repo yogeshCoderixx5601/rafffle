@@ -13,7 +13,7 @@ const RaffleCard = ({ item }: { item: RaffleItem }) => {
   const router = useRouter(); // Initialize the router
   console.log(item, "item");
 
-  const [quantity, setQuantity] = useState<number | "">("");
+  const [quantity, setQuantity] = useState<number | "">(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,7 +43,7 @@ const RaffleCard = ({ item }: { item: RaffleItem }) => {
     ) {
       try {
         const buyerDetails = {
-          raffle_id: item._id,
+          raffle: item._id,
           ordinal_address: walletDetails.ordinal_address,
           cardinal_address: walletDetails.cardinal_address,
           ordinal_pubkey: walletDetails.ordinal_pubkey,
@@ -78,7 +78,7 @@ const RaffleCard = ({ item }: { item: RaffleItem }) => {
   };
 
   return (
-    <Link href={``} className="w-full sm:w-full md:w-1/2 lg:w-1/4 p-2">
+    <div  className="w-full sm:w-full md:w-1/2 lg:w-1/4 p-2">
       <div className="group border border-customPurple_800 bg-gray-800 rounded-lg transition-all duration-300 ease-in-out hover:border-gray-600 hover:bg-gray-700 shadow-md hover:shadow-lg">
         <div className="relative w-full overflow-hidden rounded-t-lg">
           <img
@@ -87,7 +87,7 @@ const RaffleCard = ({ item }: { item: RaffleItem }) => {
             alt="Raffle Item"
           />
         </div>
-        <div className="p-4">
+        <div className="p-4 flex flex-col gap-4">
           <div className="flex justify-between">
             <div className="text-sm text-white mb-2">
               <p className="font-semibold">Inscription Id</p>
@@ -99,13 +99,13 @@ const RaffleCard = ({ item }: { item: RaffleItem }) => {
             </div>
           </div>
           <div className="flex justify-between text-white mb-2">
-            <div>
+            <div className="text-sm text-white mb-2">
               <p className="font-semibold">Remaining Tickets</p>
               <p>
                 {item.total_tickets - item.sold_tickets} / {item.total_tickets}
               </p>
             </div>
-            <div>
+            <div className="text-sm text-white mb-2">
               <p className="font-semibold">Price / ticket</p>
               <p>{item.price_per_ticket} </p>
             </div>
@@ -128,10 +128,13 @@ const RaffleCard = ({ item }: { item: RaffleItem }) => {
               {loading ? "Processing..." : "Buy"}
             </button>
           </div>
+          <Link href={`raffle/${item._id}`} className=" border border-customPurple_800 flex justify-center items-center py-2 rounded">
+            view raffle
+          </Link>
           {error && <p className="text-red-500 mt-2">{error}</p>}
         </div>
       </div>
-    </Link>
+    </div>
   );
 };
 

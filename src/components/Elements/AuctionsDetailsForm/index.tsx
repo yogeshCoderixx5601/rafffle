@@ -33,17 +33,18 @@ type AuctionDetailsFormProps = {
 };
 
 const AuctionDetailsForm = ({
+  loading,
   endDate,
   totalTickets,
   pricePerTicket,
+  runes,
+  selectedRune,
   setEndDate,
   setTotalTickets,
   setPricePerTicket,
-  onClick,
-  loading,
-  runes,
-  selectedRune,
+  setRunes,
   setSelectedRune,
+  onClick,
 }: AuctionDetailsFormProps) => {
   const handleTotalTicketsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Math.max(1, parseInt(e.target.value, 10));
@@ -55,6 +56,18 @@ const AuctionDetailsForm = ({
     setPricePerTicket(value.toString());
   };
 
+  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Get the local date-time from the input field
+    const localDateTime = e.target.value;
+    
+    // Convert to UTC date-time
+    const localDate = new Date(localDateTime);
+    const utcDateTime = localDate.toISOString(); // Format as ISO 8601 string (UTC)
+    console.log(utcDateTime,"utc date and time")
+    // Update the endDate state with the UTC date-time
+    setEndDate(utcDateTime);
+  };
+
   return (
     <div className="rounded-lg w-full max-w-2xl">
       <div className="mt-6">
@@ -62,8 +75,8 @@ const AuctionDetailsForm = ({
           <TextField
             type="datetime-local"
             label="Auction End Date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
+            value={endDate ? new Date(endDate).toISOString().slice(0, 16) : ""} // Format value to match input
+            onChange={handleEndDateChange}
             fullWidth
             variant="outlined"
             InputLabelProps={{ shrink: true }}
@@ -102,7 +115,7 @@ const AuctionDetailsForm = ({
               <MenuItem value="">
                 <em>None</em>
               </MenuItem>
-              {runes.map((rune, index) => (
+              {runes?.map((rune, index) => (
                 <MenuItem key={index} value={rune.rune_name}>
                   {rune.rune_name}
                 </MenuItem>
@@ -122,5 +135,6 @@ const AuctionDetailsForm = ({
     </div>
   );
 };
+
 
 export default AuctionDetailsForm;

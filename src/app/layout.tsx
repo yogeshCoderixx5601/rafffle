@@ -16,9 +16,9 @@ export default function RootLayout({
   return (
     <CustomProvider >
       <html lang="en">
-      <body className="flex flex-col">
+      <body className="max-w-screen-2xl mx-auto no-scrollbar flex flex-col">
       <div className=""><Header/></div>
-      <div className="pt-28">{children}</div>
+      <div className="pt-16 lg:pt-28">{children}</div>
       </body>
     </html>
     </CustomProvider>

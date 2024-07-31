@@ -9,8 +9,6 @@ import { createRaffle } from "@/apiHelper/createRaffle";
 import { useDispatch } from "react-redux";
 import { addNotification } from "@/stores/reducers/notificationReducer";
 import { getVaultBalance } from "@/apiHelper/getVaultBalance";
-import { getRaffle } from "@/apiHelper/getRaffle";
-import { RaffleItem } from "@/types";
 
 type InscriptionData = {
   address: number;
@@ -18,7 +16,7 @@ type InscriptionData = {
   inscription_number: number;
 };
 
-const RafflePage = () => {
+const CreateRafflePage = () => {
   const walletDetails = useWalletAddress();
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
@@ -30,10 +28,9 @@ const RafflePage = () => {
   const [pricePerTicket, setPricePerTicket] = useState("");
   const [inscriptions, setInscriptions] = useState<any[]>([]);
   const [runes, setRunes] = useState<any[]>([]);
-  const [selectedRune, setSelectedRune] = useState<any | null>(null); // New state for selected rune
+  const [selectedRune, setSelectedRune] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-   const [raffle, setRaffle] = useState<RaffleItem>();
 
   const handleOpen = useCallback(() => setOpen(true), []);
   const handleClose = useCallback(() => setOpen(false), []);
@@ -46,12 +43,12 @@ const RafflePage = () => {
   );
 
   const fetchInscriptionsData = useCallback(async () => {
-    if (walletDetails && walletDetails.ordinal_address) {
+    if (walletDetails?.ordinal_address) {
       setLoading(true);
       try {
         const response = await fetchInscriptions(walletDetails.ordinal_address);
-        setInscriptions(response?.data.inscriptions);
-      } catch (error) {
+        setInscriptions(response?.data.inscriptions || []);
+      } catch {
         setError("Failed to fetch inscriptions");
       } finally {
         setLoading(false);
@@ -59,51 +56,21 @@ const RafflePage = () => {
     }
   }, [walletDetails]);
 
+  const fetchRunes = useCallback(async () => {
+    if (walletDetails?.ordinal_address) {
+      try {
+        const response = await getVaultBalance(walletDetails.ordinal_address);
+        setRunes(response?.data.rune || []);
+      } catch (error) {
+        console.error("Failed to fetch runes:", error);
+      }
+    }
+  }, [walletDetails]);
+
   useEffect(() => {
     fetchInscriptionsData();
-  }, [walletDetails, fetchInscriptionsData]);
-
-   const fetchingRaffle = async () => {
-
-    try {
-      const ordinal_address = walletDetails?.ordinal_address;
-      console.log(ordinal_address)
-     if(ordinal_address){
-       const response = await getRaffle("ordinal_address");
-      console.log(response?.data, "RAFFLE DATA")
-       if (response?.data.success === true) {
-        setRaffle(response.data.result);
-      };
-     }
-    } catch (error) {
-      console.error(error);
-      setError("An error occurred while fetching the raffle data");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchingRaffle();
-  }, [walletDetails]);
-
-  console.log(raffle,"--raffle create")
-
-  const fetchRunes = async () => {
-    try {
-      if (walletDetails && walletDetails.ordinal_address) {
-        const response = await getVaultBalance(walletDetails.ordinal_address);
-        // console.log(response, "runes i get from getVaultBalance");
-        setRunes(response?.data.rune);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
     fetchRunes();
-  }, [walletDetails]);
+  }, [fetchInscriptionsData, fetchRunes]);
 
   const handleCreateRaffle = async () => {
     setLoading(true);
@@ -111,10 +78,10 @@ const RafflePage = () => {
       const raffleDetails = {
         inscription_id: selectedData?.inscription_id,
         inscription_number: selectedData?.inscription_number,
-        rune_id: selectedRune.rune_id,
-        rune_name: selectedRune.rune_name,
-        total_balance: selectedRune.total_balance,
-        rune_divisibility: selectedRune.divisibility,
+        rune_id: selectedRune?.rune_id,
+        rune_name: selectedRune?.rune_name,
+        total_balance: selectedRune?.total_balance,
+        rune_divisibility: selectedRune?.divisibility,
         address: selectedData?.address,
         endDate,
         totalTickets,
@@ -131,13 +98,22 @@ const RafflePage = () => {
             severity: "success",
           })
         );
+        // Reset form states
         setSelectedData(null);
         setTotalTickets("");
         setPricePerTicket("");
+        setEndDate("");
       } else {
-        throw new Error("Raffle creation failed");
+        dispatch(
+          addNotification({
+            id: Date.now(),
+            message: "Raffle not created",
+            open: true,
+            severity: "error",
+          })
+        );
       }
-    } catch (error) {
+    } catch {
       setError("Failed to create raffle");
       dispatch(
         addNotification({
@@ -152,33 +128,29 @@ const RafflePage = () => {
     }
   };
 
-  console.log(selectedRune, "selected rune");
-
   return (
     <div className="w-full">
       <div className="flex flex-col lg:flex-row gap-5 p-4 h-full">
         <div className="w-full lg:w-4/12 flex">
-          <div className="w-full">
-            <InscriptionSelector
-              selectedData={selectedData}
-              onOpenModal={handleOpen}
-            />
-          </div>
+          <InscriptionSelector
+            selectedData={selectedData}
+            onOpenModal={handleOpen}
+          />
         </div>
         <div className="w-full lg:w-7/12 bg-customPurple_950 py-2 px-6 rounded-lg">
           <AuctionDetailsForm
+            loading={loading}
             endDate={endDate}
             totalTickets={totalTickets}
             pricePerTicket={pricePerTicket}
-            runes={runes} // Pass the array of runes
+            runes={runes}
+            selectedRune={selectedRune}
             setEndDate={setEndDate}
             setTotalTickets={setTotalTickets}
             setPricePerTicket={setPricePerTicket}
-            setRunes={setRunes} // Function to update the array of runes
-            selectedRune={selectedRune} // New prop for selected rune
-            setSelectedRune={setSelectedRune} // New prop for setting selected rune
+            setRunes={setRunes}
+            setSelectedRune={setSelectedRune}
             onClick={handleCreateRaffle}
-            loading={loading}
           />
         </div>
       </div>
@@ -196,4 +168,4 @@ const RafflePage = () => {
   );
 };
 
-export default RafflePage;
+export default CreateRafflePage;

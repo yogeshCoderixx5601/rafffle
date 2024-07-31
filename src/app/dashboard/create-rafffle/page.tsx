@@ -1,10 +1,10 @@
 
-import RafflePage from '@/views/createRafffle'
+import CreateRafflePage from '@/views/createRafffle'
 import React from 'react'
 
 const Rafffle = () => {
   return (
-    <div><RafflePage/></div>
+    <div><CreateRafflePage/></div>
   )
 }
 

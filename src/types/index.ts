@@ -106,6 +106,7 @@ export interface IInscription {
 
 // types/RaffleItem.ts
 export type RaffleItem = {
+  live: boolean;
   _id: string;
   address: string;
   inscription_id: string;
@@ -122,3 +123,36 @@ export type RaffleItem = {
   updatedAt: string; // Alternatively, you could use Date if you parse it
   __v: number;
 };
+
+
+export interface IRaffle {
+  _id: string;
+  address: string;
+  inscription_id: string;
+  inscription_number: number;
+  rune_id: string;
+  rune_name: string;
+  total_balance: number;
+  rune_divisibility: number;
+  end_date: string;
+  total_tickets: number;
+  price_per_ticket: number;
+  sold_tickets: number;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export interface IUserRaffle {
+  _id: string;
+  raffle: IRaffle;
+  ordinal_address: string;
+  cardinal_address: string;
+  ordinal_pubkey: string;
+  cardinal_pubkey: string;
+  wallet: string;
+  quantity: number;
+  rune_id: string;
+  rune_name: string;
+  __v: number;
+}
