@@ -34,7 +34,7 @@ const InscriptionModal = ({
   onSelect: (inscriptions: any) => void;
   inscriptions: any[];
 }) => {
-
+console.log(inscriptions,"inscriptions")
   return (
     <Modal
       open={open}
@@ -47,11 +47,11 @@ const InscriptionModal = ({
           Select an Inscription for Auction
         </Typography>
         <List className="w-full flex">
-          {inscriptions?.map((item, index) => (
+          {inscriptions?.map((item, idx) => (
             <ListItem
-              key={item.id}
+              key={idx}
               onClick={() => {
-                // console.log("Selected item:", item); // Log the selected item
+                console.log("Selected item:", item); // Log the selected item
                 onSelect(item);
               }}
             >
@@ -60,7 +60,7 @@ const InscriptionModal = ({
                   className="text-white"
                   primary={
                     <div className="flex gap-2">
-                      <div>{index + 1}.</div>
+                      <div>{idx + 1}.</div>
                       <div className=""><img src={`http://192.168.1.17:8080/content/${item.inscription_id}`} alt={`${item.inscription_id}`} className="w-[30px] h-[30px]" /></div>
                       <div>{shortenString(item.inscription_id)}</div>
                     </div>

@@ -155,6 +155,7 @@ export async function getVaultBalance(address: string) {
     const apiUrl = process.env.NEXT_PUBLIC_NETWORK?.includes("testnet")
       ? "http://192.168.1.17:8003/"
       : `${process.env.NEXT_PUBLIC_PROVIDER}/`;
+      console.log(apiUrl, "api url")
 
     if (!apiUrl) {
       console.warn("API provider URL is not defined in environment variables");
@@ -162,13 +163,13 @@ export async function getVaultBalance(address: string) {
     }
 
     const url = `${apiUrl}v1/runes/get_current_balance_of_wallet?address=${address}`;
-    // console.log({ url });
+    console.log({ url });
     const response = await axios.get(url, {
       headers: {
         Accept: "application/json",
       },
     });
-    // console.log(response.data, "api getVaultBalance utils");
+    console.log(response.data, "api getVaultBalance utils");
 
     return response.data;
   } catch (error) {}
