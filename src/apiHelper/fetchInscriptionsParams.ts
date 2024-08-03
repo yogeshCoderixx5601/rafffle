@@ -1,13 +1,11 @@
 'use server';
 import { getInscriptionFromMempoolAPI } from '@/utils/getInscriptionsFromMempoolAPI';
-import axios from 'axios';
-
-
 
 export async function fetchInscriptions(
   ordinal_address: string
 ): Promise<{ data: any; error: string | null } | undefined> {
   try {
+    console.log(ordinal_address,"----------ordinal_address fetchInscriptions")
     if (process.env.NEXT_PUBLIC_NETWORK !== 'testnet') {
      
     }
@@ -15,6 +13,7 @@ export async function fetchInscriptions(
     else {
     //   if (!wallet) return undefined;
       const inscriptions = await getInscriptionFromMempoolAPI(ordinal_address);
+      console.log(inscriptions,"inscriptions getInscriptionFromMempoolAPI")
 
       if (inscriptions.length > 0) {
         const result = {

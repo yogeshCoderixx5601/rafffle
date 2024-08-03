@@ -25,9 +25,8 @@ export const toXOnly = (pubKey: string | any[]) =>
   pubKey.length === 32 ? pubKey : pubKey.slice(1, 33);
 
 export function getSellerOrdOutputValue(
-  price: number,
   makerFeeBp: number | undefined,
-  prevUtxoValue: number
+  value:number,
 ): number {
   if (makerFeeBp === undefined || makerFeeBp === null) {
     // console.log(
@@ -40,12 +39,11 @@ export function getSellerOrdOutputValue(
   const makerFeePercent = makerFeeBp / 10000; // converting basis points to percentage
   // console.log("makerFeePercent: ", makerFeePercent);
 
-  const makerFee = Math.floor(price * makerFeePercent);
+  const makerFee = Math.floor( makerFeePercent);
   // console.log("Maker's fee: ", makerFee);
 
-  const outputValue = price - makerFee + prevUtxoValue;
-  // console.log("Output Value: ", outputValue);
-
+  const outputValue = value - makerFee ;
+  console.log("Output Value: ", outputValue);
   return Math.floor(outputValue);
 }
 
@@ -100,9 +98,7 @@ function ecdsaValidator(
   return ecc.verify(msghash, signature, pubkey);
 }
 
-export async function mapUtxos(
-  utxosFromMempool: any[]
-): Promise<any[]> {
+export async function mapUtxos(utxosFromMempool: any[]): Promise<any[]> {
   const ret: any[] = [];
   for (const utxoFromMempool of utxosFromMempool) {
     const txHex = await getTxHexById(utxoFromMempool.txid);
@@ -144,18 +140,13 @@ export const fromXOnly = (buffer: Buffer): string => {
   }
 };
 
-
-
-
-
-
 export async function getVaultBalance(address: string) {
   console.log("********GETTING VAULT BALANCE UTILS***********");
   try {
     const apiUrl = process.env.NEXT_PUBLIC_NETWORK?.includes("testnet")
       ? "http://192.168.1.17:8003/"
       : `${process.env.NEXT_PUBLIC_PROVIDER}/`;
-      console.log(apiUrl, "api url")
+    console.log(apiUrl, "api url");
 
     if (!apiUrl) {
       console.warn("API provider URL is not defined in environment variables");
@@ -184,7 +175,12 @@ export async function doesUtxoContainInscription(utxo: any): Promise<any> {
   if (!apiUrl) {
     // If the API URL is not set, return true as per your requirement
     console.warn("API provider URL is not defined in environment variables");
-    return true;
+    return {
+      containsInscription: true,
+      txid: utxo.txid,
+      vout: utxo.vout,
+      value: utxo.value,
+    };
   }
 
   try {
@@ -194,6 +190,7 @@ export async function doesUtxoContainInscription(utxo: any): Promise<any> {
         Accept: "application/json",
       },
     });
+    // console.log(response,"response  inscriptions")
 
     // console.log(
     //   Array.isArray(response.data.inscriptions),
@@ -205,7 +202,16 @@ export async function doesUtxoContainInscription(utxo: any): Promise<any> {
       Array.isArray(response.data.inscriptions) &&
       response.data.inscriptions.length > 0
     ) {
-      return response.data.inscriptions[0];
+      console.log(response, "data");
+      const inscription = {
+        containsInscription: true,
+        txid: utxo.txid,
+        vout: utxo.vout,
+        value: utxo.value,
+        inscription_id: response.data.inscriptions[0],
+      };
+      console.log(inscription,"before return")
+      return inscription
     } else if (response.data.inscriptions.length === 0) {
       // If the data is empty array, return false
       // console.warn('Empty Array is returned');
@@ -219,4 +225,3 @@ export async function doesUtxoContainInscription(utxo: any): Promise<any> {
     return true;
   }
 }
-

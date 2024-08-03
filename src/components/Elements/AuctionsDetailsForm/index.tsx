@@ -25,6 +25,7 @@ type AuctionDetailsFormProps = {
   setTotalTickets: (value: string) => void;
   setPricePerTicket: (value: string) => void;
   onClick: () => void;
+    // onSignTx: () => void;
   loading: boolean;
   runes: RuneDetails[];
   setRunes: (value: RuneDetails[]) => void;
@@ -45,6 +46,7 @@ const AuctionDetailsForm = ({
   setRunes,
   setSelectedRune,
   onClick,
+  // onSignTx
 }: AuctionDetailsFormProps) => {
   const handleTotalTicketsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Math.max(1, parseInt(e.target.value, 10));
@@ -132,6 +134,7 @@ const AuctionDetailsForm = ({
           {loading ? <CircularProgress size={24} /> : "Create Raffle"}
         </div>
       </div>
+      
     </div>
   );
 };

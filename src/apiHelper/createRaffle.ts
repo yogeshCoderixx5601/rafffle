@@ -17,6 +17,7 @@ export async function createRaffle(
   raffleDetails: any
 ): Promise<{ data?: any; error: string | null } | undefined> {
   try {
+    console.log(raffleDetails)
     let url = `${process.env.NEXT_PUBLIC_URL}/api/create-raffle`;
     const response = await axios.post(url, 
       raffleDetails,
